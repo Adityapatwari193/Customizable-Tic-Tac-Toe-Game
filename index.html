@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizable Tic-Tac-Toe</title>
+    <link rel="stylesheet" href="app.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-left">
+            <span class="name">Aditya Patwari</span>
+        </div>
+        <div class="navbar-right">
+            <a href="https://github.com/Adityapatwari193" target="_blank"><img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub"></a>
+            <a href="https://www.linkedin.com/in/aditya-patwari-8649aa257" target="_blank"><img src="https://content.linkedin.com/content/dam/me/brand/en-us/brand-home/logos/In-Blue-Logo.png.original.png" alt="LinkedIn"></a>
+            <a href="https://www.instagram.com/adityapatwari19" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/1024px-Instagram_icon.png" alt="Instagram"></a>
+            <a href="mailto:adityapatwari19@gmail.com"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Mail_%28iOS%29.svg/1024px-Mail_%28iOS%29.svg.png" alt="Email"></a>
+            <a href="https://www.facebook.com/your-facebook-profile" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Facebook_f_logo_%282019%29.svg/1200px-Facebook_f_logo_%282019%29.svg.png" alt="Facebook"></a>
+        </div>
+    </div>
+    <div id="popup" class="popup">Welcome Back!</div>
+    <h1>Customizable Tic-Tac-Toe</h1>
+    <form id="setupForm">
+        <div class="form-row">
+            <label for="player1Name">Player 1 Name: </label>
+            <input type="text" id="player1Name" name="player1Name">
+            <label for="player2Name">Player 2 Name: </label>
+            <input type="text" id="player2Name" name="player2Name">
+        </div>
+        
+        <div class="form-row">
+            <label for="gridSize">Choose Grid Size (3-10): </label>
+            <select id="gridSize" name="gridSize">
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+
+            <label for="winStreak">Choose Win Streak: </label>
+            <select id="winStreak" name="winStreak">
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        </div>
+        <div id="buttonRow">
+            <button type="button" id="startButton">Start</button>
+            <button type="button" id="resetButton">Reset</button>
+        </div>
+    </form>
+
+    <div id="message"></div>
+    <div id="gameBoard"></div>
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function() {
+    var popup = document.getElementById("popup");
+    setTimeout(function() {
+        popup.style.display = "none";
+    }, 3000); 
+});
+
+        document.getElementById('startButton').addEventListener('click', function() {
+            const gridSize = parseInt(document.getElementById('gridSize').value);
+            const winStreak = parseInt(document.getElementById('winStreak').value);
+            const player1Name = document.getElementById('player1Name').value || 'Player 1';
+            const player2Name = document.getElementById('player2Name').value || 'Player 2';
+
+            startGame(gridSize, winStreak, player1Name, player2Name);
+            updateMessage();
+
+            document.getElementById('player1Name').style.display = 'none';
+            document.getElementById('player2Name').style.display = 'none';
+        });
+
+        document.getElementById('resetButton').addEventListener('click', function() {
+            document.getElementById('gridSize').value = '3';
+            document.getElementById('winStreak').value = '3';
+            document.getElementById('player1Name').value = '';
+            document.getElementById('player2Name').value = '';
+            updateWinStreakOptions(3);
+            startGame(3, 3, 'Player 1', 'Player 2');
+            document.getElementById('message').textContent = '';
+
+            document.getElementById('player1Name').style.display = 'inline-block';
+            document.getElementById('player2Name').style.display = 'inline-block';
+        });
+
+        document.getElementById('gridSize').addEventListener('change', function() {
+            const gridSize = parseInt(document.getElementById('gridSize').value);
+            updateWinStreakOptions(gridSize);
+        });
+
+        
+        function updateWinStreakOptions(gridSize) {
+            const winStreakSelect = document.getElementById('winStreak');
+            winStreakSelect.innerHTML = '';
+            for (let i = 3; i <= gridSize; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                winStreakSelect.appendChild(option);
+            }
+        }
+
+        //To start the Game based on the number of Grids selected
+        function startGame(gridSize, winStreak, player1Name, player2Name) {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+            grid.style.gridTemplateColumns = `repeat(${gridSize}, 50px)`;
+
+            const cells = [];
+            for (let i = 0; i < gridSize * gridSize; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                cell.addEventListener('click', () => handleMove(cell, gridSize, winStreak, player1Name, player2Name));
+                grid.appendChild(cell);
+                cells.push(cell);
+            }
+            gameBoard.appendChild(grid);
+
+            window.ticTacToe = {
+                gridSize: gridSize,
+                winStreak: winStreak,
+                cells: cells,
+                currentPlayer: player1Name,
+                moves: 0,
+                gameOver: false,
+                player1Name: player1Name,
+                player2Name: player2Name
+            };
+        }
+
+
+        function handleMove(cell, gridSize, winStreak, player1Name, player2Name) {
+            if (window.ticTacToe.gameOver || cell.textContent !== '') return;
+
+            const playerSymbol = window.ticTacToe.currentPlayer === player1Name ? 'X' : 'O';
+            cell.textContent = playerSymbol;
+            window.ticTacToe.moves += 1;
+
+            if (checkWin(cell, gridSize, winStreak)) {
+                window.ticTacToe.gameOver = true;
+                updateMessage(`${window.ticTacToe.currentPlayer} wins!`);
+            } else if (window.ticTacToe.moves === gridSize * gridSize) {
+                window.ticTacToe.gameOver = true;
+                updateMessage('Draw!');
+            } else {
+                window.ticTacToe.currentPlayer = window.ticTacToe.currentPlayer === player1Name ? player2Name : player1Name;
+                updateMessage();
+            }
+        }
+
+        //To check the winner of the game
+        function checkWin(cell, gridSize, winStreak) {
+            const index = parseInt(cell.dataset.index);
+            const x = index % gridSize;
+            const y = Math.floor(index / gridSize);
+            const directions = [
+                { dx: 1, dy: 0 },
+                { dx: 0, dy: 1 },
+                { dx: 1, dy: 1 },
+                { dx: 1, dy: -1 }
+            ];
+
+            for (const { dx, dy } of directions) {
+                let count = 1;
+                for (let step = 1; step < winStreak; step++) {
+                    const nx = x + step * dx;
+                    const ny = y + step * dy;
+                    if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && window.ticTacToe.cells[ny * gridSize + nx].textContent === cell.textContent) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+                for (let step = 1; step < winStreak; step++) {
+                    const nx = x - step * dx;
+                    const ny = y - step * dy;
+                    if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && window.ticTacToe.cells[ny * gridSize + nx].textContent === cell.textContent) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+                if (count >= winStreak) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        //To show the result of the game
+        function updateMessage(message) {
+            const messageDiv = document.getElementById('message');
+            if (message) {
+                messageDiv.textContent = message;
+            } else {
+                messageDiv.textContent = `It's ${window.ticTacToe.currentPlayer}'s turn.`;
+            }
+        }
+
+        //To display the default 3x3 Grid
+        updateWinStreakOptions(3);
+        startGame(3, 3, 'Player 1', 'Player 2');
+    </script>
+</body>
+</html>
